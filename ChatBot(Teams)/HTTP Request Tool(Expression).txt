@@ -1,0 +1,14 @@
+{
+  "inputs": {},
+  "query": "{{ $('If').item.json.body.content }}",
+  "response_mode": "blocking",
+  "conversation_id": "",
+  "user": "abc-124",
+  "files": [
+    {
+      "type": "image",
+      "transfer_method": "remote_url",
+      "url": "https://cloud.dify.ai/logo/logo-site.png"
+    }
+  ]
+} 

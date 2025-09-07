@@ -1,0 +1,251 @@
+{
+  "name": "SendReply(Gmail)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -208,
+        -16
+      ],
+      "id": "9e970abc-1c9d-40ec-92f2-b6fd8d02efb7",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1p6JcxipzE1-WjWUu7bulmA-qUq2hqFY_23R0JB9k4-w",
+          "mode": "list",
+          "cachedResultName": "이메일관리",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1p6JcxipzE1-WjWUu7bulmA-qUq2hqFY_23R0JB9k4-w/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "메일목록",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1p6JcxipzE1-WjWUu7bulmA-qUq2hqFY_23R0JB9k4-w/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "전송여부",
+              "lookupValue": "발송준비"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        0,
+        -16
+      ],
+      "id": "1535fd84-81d7-46c5-a17f-dffe37c43806",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "H6LuJ842Hi69oBTo",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json['보낸사람 이메일'] }}",
+        "subject": "=[답변]{{ $json['제목'] }}",
+        "message": "={{ $json['답변'] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        -16
+      ],
+      "id": "314661ef-3d56-4473-8795-9d245e3d0aaf",
+      "name": "Send a message",
+      "webhookId": "bca12b8a-eef7-4048-b9d2-6efc34cd4b64",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "ZTDohWoZOY2lp5gP",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1p6JcxipzE1-WjWUu7bulmA-qUq2hqFY_23R0JB9k4-w",
+          "mode": "list",
+          "cachedResultName": "이메일관리",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1p6JcxipzE1-WjWUu7bulmA-qUq2hqFY_23R0JB9k4-w/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "메일목록",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1p6JcxipzE1-WjWUu7bulmA-qUq2hqFY_23R0JB9k4-w/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "전송여부": "발송완료",
+            "row_number": "={{ $('Get row(s) in sheet').item.json.row_number }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "보낸사람",
+              "displayName": "보낸사람",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "보낸사람 이메일",
+              "displayName": "보낸사람 이메일",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "제목",
+              "displayName": "제목",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "본문",
+              "displayName": "본문",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "답변",
+              "displayName": "답변",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "전송여부",
+              "displayName": "전송여부",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        416,
+        -16
+      ],
+      "id": "d2c1fd33-78eb-4f8f-8b17-da23772a9ed4",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "H6LuJ842Hi69oBTo",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e4a97a0c-0035-4789-b987-36133cd2cfbb",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ca42ea5b116f6cdfe7aabe94d727b028212d11d79f535ab133fecad1577187f8"
+  },
+  "id": "Mb13LZOzwQI4DKDP",
+  "tags": []
+}

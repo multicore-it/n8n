@@ -1,0 +1,153 @@
+{
+  "name": "RSS(Teams)",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -416,
+        -16
+      ],
+      "id": "8584a505-5226-4e79-91f8-65f79101feab",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://www.korea.kr/rss/policy.xml",
+        "options": {
+          "customFields": "date,title,contentSnippet"
+        }
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        -192,
+        -16
+      ],
+      "id": "38967509-8a08-4214-be5d-a58e17a1cbff",
+      "name": "RSS Read"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 입력 데이터가 있는지 확인하고, 가장 최신 데이터를 처리합니다.\nif (items.length > 0) {\n  // pubDate를 기준으로 아이템을 최신순으로 정렬합니다.\n  const sortedItems = items.sort((a, b) => {\n    // 날짜 문자열을 Date 객체로 변환하여 비교합니다.\n    const dateA = new Date(a.json.pubDate);\n    const dateB = new Date(b.json.pubDate);\n    // 내림차순 정렬 (최신 날짜가 먼저 오도록)\n    return dateB.getTime() - dateA.getTime();\n  });\n\n  // 정렬된 배열에서 가장 최신 데이터(첫 번째 아이템)를 가져옵니다.\n  const inputData = sortedItems[0].json;\n\n  // HTML 문자열을 생성합니다.\n  const htmlOutput = `\n    <!DOCTYPE html>\n    <html>\n    <head>\n      <title>${inputData.title}</title>\n      <style>\n        body { font-family: sans-serif; line-height: 1.6; padding: 20px; }\n        h1 { color: #333; }\n        .date { color: #666; font-style: italic; font-size: 0.9em; }\n        .content { margin-top: 20px; }\n        a { text-decoration: none; color: #0066cc; }\n        a:hover { text-decoration: underline; }\n      </style>\n    </head>\n    <body>\n      <h1><a href=\"${inputData.link}\" target=\"_blank\">${inputData.title}</a></h1>\n      <p class=\"date\">게시일: ${inputData.pubDate}</p>\n      <div class=\"content\">\n        ${inputData.content}\n      </div>\n    </body>\n    </html>\n  `;\n\n  // 단일 아이템을 포함하는 배열을 반환합니다.\n  return [\n    {\n      json: {\n        htmlOutput: htmlOutput,\n      }\n    }\n  ];\n}\n\n// 입력 데이터가 없으면 빈 배열을 반환합니다.\nreturn [];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        32,
+        -16
+      ],
+      "id": "4195c410-ad14-438c-ac8c-92db4cd459a9",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "resource": "channelMessage",
+        "teamId": {
+          "__rl": true,
+          "value": "8597f20b-7be4-4967-b9f8-f8045d27efb0",
+          "mode": "list",
+          "cachedResultName": "베이직인터내셔널"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "19:dce6b26a0a994b5f8ac661884189d54e@thread.tacv2",
+          "mode": "list",
+          "cachedResultName": "n8n 테스트",
+          "cachedResultUrl": "https://teams.cloud.microsoft/l/channel/19%3Adce6b26a0a994b5f8ac661884189d54e%40thread.tacv2/n8n%20%ED%85%8C%EC%8A%A4%ED%8A%B8?groupId=8597f20b-7be4-4967-b9f8-f8045d27efb0&tenantId=927f36e3-f254-4a32-b674-49d7fab6fb65&allowXTenantAccess=True&ngc=True"
+        },
+        "contentType": "html",
+        "message": "={{ $json.htmlOutput }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.microsoftTeams",
+      "typeVersion": 2,
+      "position": [
+        256,
+        -16
+      ],
+      "id": "93ef154b-d934-4807-8ad5-ed7631fb54be",
+      "name": "Create message",
+      "webhookId": "9f32ed93-7746-40df-9065-466a1c92256c",
+      "credentials": {
+        "microsoftTeamsOAuth2Api": {
+          "id": "MMGOhITjBsmEURmx",
+          "name": "Microsoft Teams account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9,
+              "triggerAtMinute": 30
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -416,
+        208
+      ],
+      "id": "6a3d2c85-e5e8-440b-9f5b-12112f717796",
+      "name": "Schedule Trigger"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        []
+      ]
+    },
+    "RSS Read": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Create message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "RSS Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ad9c6ac9-bbe9-47ff-8d88-595ababa8c9d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ca42ea5b116f6cdfe7aabe94d727b028212d11d79f535ab133fecad1577187f8"
+  },
+  "id": "pFph7ej05CRborro",
+  "tags": []
+}
