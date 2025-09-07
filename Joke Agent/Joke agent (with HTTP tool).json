@@ -1,0 +1,198 @@
+{
+  "name": "Joke agent (with HTTP tool)",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -672,
+        0
+      ],
+      "id": "10870665-8098-49d9-b36a-843227a25ec8",
+      "name": "When chat message received",
+      "webhookId": "90f0993e-31ff-4523-8dbc-613465d12b64"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use this tool to retrieve jokes",
+        "url": "=https://v2.jokeapi.dev/joke/Any?format=txt",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters0_Name', ``, 'string') }}",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters0_Value', ``, 'string') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        -224,
+        256
+      ],
+      "id": "a9615eac-7845-4f4f-a5b0-fdec59f3751e",
+      "name": "Joke API"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use this tool to read about the joke api documentation, so that you can filter queries to the api based on the user prompt.",
+        "url": "https://v2.jokeapi.dev/",
+        "options": {},
+        "optimizeResponse": true,
+        "responseType": "html",
+        "onlyContent": true
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        -48,
+        256
+      ],
+      "id": "a8f4b23a-89cb-4673-a595-6855ba1a6d10",
+      "name": "API docs"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -576,
+        272
+      ],
+      "id": "93fdc1ff-4dee-4f7f-8b37-b8c041a22073",
+      "name": "Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "kQfTl0KTYaFaL8Ze",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -400,
+        272
+      ],
+      "id": "8ca3ae47-7e3d-42ed-ac35-bf2f187715eb",
+      "name": "Memory"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "# 조크 에이전트 시스템 프롬프트\n당신은 대화에 웃음과 좋은 분위기를 가져다주는 재미있고 유쾌한 농담 봇입니다. 당신의 임무는 농담을 말하고, 유머를 나누며, 분위기를 가볍고 즐겁게 유지하는 것입니다.\n\n## 주요 목적\n- 사용자가 농담을 요청할 때 조크 API를 사용하여 농담을 말해주세요.\n- 재치 있고 재미있으며 즐거움을 줄 수 있도록 행동하세요.\n- 대화를 활기차고 긍정적으로 유지하세요.\n- 사용자의 선호도에 맞춰 다양한 종류의 유머를 공유하세요.\n\n## 조크 API 사용법\n- 사용자가 농담을 요청할 때마다 조크 API 도구를 사용하세요.\n- 특정 내용을 필터링하는 방법을 알아야 할 경우 API 문서를 확인할 수 있습니다.\n- API는 다양한 농담 카테고리와 형식을 제공합니다.\n- 사용자가 선호하는 특정 유형의 농담을 요청할 수 있습니다.\n- 항상 열정과 적절한 타이밍을 가지고 농담을 전달하세요.\n\n## 상호작용 스타일\n\n### 사용자가 농담을 요청할 때\n- 조크 API를 사용하여 신선한 농담을 가져오세요.\n- 적절한 코미디 타이밍에 맞춰 농담을 제시하세요.\n- 필요하다면 당신만의 재치나 서론을 덧붙이세요.\n- 더 듣고 싶은지 물어보세요.\n\n### 일반적인 대화\n- 분위기를 가볍고 즐겁게 유지하세요.\n- 답변에 자연스럽게 유머를 사용하세요.\n- 격려하고 긍정적인 태도를 유지하세요.\n- 반복을 피하기 위해 이전에 했던 농담을 기억하세요.\n\n### 제공할 수 있는 유머 종류\n- 건전하고 가족 친화적인 농담 (기본)\n- 아재 개그와 말장난\n- 프로그래밍/기술 농담 (적절할 경우)\n- 짧고 재치 있는 한마디 농담\n- 노크노크(Knock-knock) 농담\n\n## 답변 지침\n\n### 농담 전달\n- 필요할 때 기대감을 조성하세요.\n- 적절한 타이밍과 속도를 사용하세요.\n- 어조에 열정을 더하세요.\n- \"다른 것도 해드릴까요?\"와 같은 말로 대화를 이어가세요.\n\n### 대화 흐름\n- 사용자를 웃게 하는 것이 무엇인지 기억하세요.\n- 그들의 유머 취향에 맞춰 적응하세요.\n- 분위기를 밝게 유지하세요.\n- 농담과 일반적인 대화를 부드럽게 전환하세요.\n\n### 좋은 답변의 예시\n\n**사용자**: \"농담 하나 해줘\"\n**당신**: \"바로 준비할게요! 좋은 걸로 하나 가져올게요...\" *[조크 API 사용]*\n\n**사용자**: \"그거 별로였어!\"\n**당신**: \"에이, 다 좋을 순 없죠! 😄 다른 스타일로 다시 해볼까요?\"\n\n**사용자**: \"프로그래밍 농담 있어?\"\n**당신**: \"아, 기술 유머 정말 좋아해요! 좋은 거 하나 찾아볼게요...\" *[조크 API 사용]*\n\n## 재미있게 즐기세요\n\n- 긍정적이고 격려하는 태도를 유지하세요.\n- 사용자와 함께 웃으세요.\n- 너무 진지하게 생각하지 마세요.\n- 사람들을 미소 짓게 하고 하루를 밝게 만들어주세요.\n- 농담이 통하지 않더라도, 유쾌하게 넘어가세요.\n\n기억하세요: 당신의 목표는 기쁨과 웃음을 전파하는 것입니다. 모든 것을 재미있고, 적절하며, 유쾌하게 유지하세요!"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -448,
+        0
+      ],
+      "id": "fb541fe9-749d-4f22-a171-3a16eb1bdb4c",
+      "name": "Joke agent"
+    },
+    {
+      "parameters": {
+        "content": "### Joke Agent\nA chat-based joke agent that uses the Joke API and an AI model to deliver fun, personalized jokes and keep conversations entertaining.\n\n#### Set up\n- Configure your credentials in the Model node\n- Open the chat and start talking to your agent\n\n#### Next steps\nYou can apply this pattern to any website or API, try connecting the docs of a tool you use regularly but remember to change the system prompt.\n",
+        "height": 400,
+        "width": 304,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1088,
+        -32
+      ],
+      "typeVersion": 1,
+      "id": "fd4fc7ea-30bf-42d1-8bb6-4026ef12e95c",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Joke agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Joke API": {
+      "ai_tool": [
+        [
+          {
+            "node": "Joke agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API docs": {
+      "ai_tool": [
+        [
+          {
+            "node": "Joke agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Joke agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Joke agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "897efd00-e2f9-4581-aa9d-cbf88572cf33",
+  "meta": {
+    "templateId": "joke_agent_with_http_tool",
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ca42ea5b116f6cdfe7aabe94d727b028212d11d79f535ab133fecad1577187f8"
+  },
+  "id": "EmMP1JfQKiicWAEz",
+  "tags": []
+}
