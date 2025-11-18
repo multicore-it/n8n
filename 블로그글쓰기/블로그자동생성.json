@@ -1,0 +1,672 @@
+{
+  "name": "블로그자동생성",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 21
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -2096,
+        -1376
+      ],
+      "id": "75b48f71-dc2d-4c03-9fe5-83d1f2dcf334",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://www.yonhapnewstv.co.kr/browse/feed",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        -1872,
+        -1376
+      ],
+      "id": "b5f7e23f-e77c-4918-beca-109e3e17cdfb",
+      "name": "RSS Read"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "content:encodedSnippet"
+            },
+            {
+              "fieldToAggregate": "title"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -1648,
+        -1376
+      ],
+      "id": "02055e43-bbf6-484f-97f1-179d2a442954",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=#역할: 당신은 최신 트렌드를 분석하는 블로그 콘텐츠 큐레이터입니다.\n\n#입력 데이터:\n{{ $json['content:encodedSnippet'] }}\n\n#지시사항:\n1.  위 `입력 데이터`에서 모든 항목을 분석하세요.\n2.  다음 기준을 종합적으로 고려하여 가장 트렌드에 부합하는 항목 단 하나를 선택하세요.\n    * 주제: 'AI', '인공지능', '챗GPT', 'LLM', '경제', '주식', '과학', '복지'와 같은 현재 가장 주목받는 기술 키워드가 제목 또는 내용(`content`)에 포함된 항목을 찾으세요.\n3. 선택된 항목이 없으며, 가장 핫한 뉴스를 선정해주세요.\n\n#출력 형식:\n선택된 항목만 텍스트로 반환하세요.",
+              "role": "system"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -1424,
+        -1376
+      ],
+      "id": "507666e7-9c54-401e-8e00-6bdfccd6624c",
+      "name": "Message a model(뉴스선정)",
+      "credentials": {
+        "openAiApi": {
+          "id": "mEeS5EyFIBRzlaY2",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=#역할: 당신은 제공된 뉴스 데이터를 분석하고, 최신 트렌드와 SEO에 최적화된 블로그 제목을 만드는 전문 콘텐츠 큐레이터입니다.\n\n#뉴스데이터:\n {{ $json.message.content }}\n\n#지침:\n1.  위 뉴스데이터를 분석하여 내용의 핵심 주제와 최신 트렌드를 파악하세요.\n2.  주제와 관련된 가장 검색량이 많을 것으로 예상되는 키워드를 제목에 포함시키세요.\n3.  클릭을 유도할 수 있도록 매력적이고 간결한 문구를 사용하여 독자의 호기심을 자극하세요.\n4.  최대 25자 내외의 제목 하나만 만들어주세요.\n\n#출력형식\n아래 예시와 같이, 제목만 텍스트로 반환하세요. 다른 설명이나 텍스트는 일절 포함하지 마세요.\n예시) AI가 만드는 미래: 챗GPT의 놀라운 활용법"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -1072,
+        -1376
+      ],
+      "id": "1e828156-e0c6-4ed4-9e77-66146076118a",
+      "name": "Message a model(제목생성)",
+      "credentials": {
+        "openAiApi": {
+          "id": "mEeS5EyFIBRzlaY2",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=#역할: 당신은 제공된 뉴스 기사를 분석하고, 독자의 공감을 얻는 깊이 있는 블로그 인트로를 작성하는 전문 콘텐츠 작가입니다.\n\n#뉴스 데이터:\n{{ $('Message a model(뉴스선정)').item.json.message.content }}\n\n#지침:\n1. 위 뉴스 데이터를 분석하여 기사의 핵심 주제와 그 중요성을 파악하세요.\n2. 독자들이 겪을 수 있는 문제나 궁금증을 먼저 제시하여 글의 배경을 설명하고 공감대를 형성하세요.\n3. 기사 내용의 주요 하이라이트를 서론에 간략하게 담아내세요. 이 글이 어떤 유용한 정보를 제공할지 명확히 보여줘야 합니다.\n4. 독자에게 이 글을 읽어야 할 구체적인 이유와 얻게 될 이점을 명확히 제시하세요.\n5. 5~7문장 분량의 풍부한 인트로를 작성하여 독자가 글에 완전히 몰입할 수 있도록 유도하세요.\n6. 작성된 인트로 문단이 끝난 바로 다음 줄에 [IMG_INTRO_PLACE]를 정확히 삽입하세요.\n7. HTML 형식으로 출력합니다.\n\n#출력 형식:\n아래 예시와 같이, 작성된 인트로 문단과 [IMG_INTRO_PLACE] 자리 표시자를 텍스트로 반환하세요. 다른 설명이나 텍스트는 일절 포함하지 마세요.\n예시) \"챗GPT와 같은 생성형 AI가 우리의 일상과 비즈니스에 놀라운 혁신을 가져오고 있습니다. 하지만 수많은 정보 속에서 AI 기술의 핵심을 파악하고 실제 업무에 적용하는 것은 여전히 어렵게 느껴지죠. 이 글에서는 AI 기술이 가져올 미래 변화를 심층 분석하고, 실생활과 비즈니스에 바로 적용할 수 있는 구체적인 활용법을 전문가의 시각에서 제시합니다. 독자 여러분은 이 글을 통해 AI 시대에 앞서 나가는 인사이트를 얻고, 새로운 기회를 포착하는 방법을 배우게 될 것입니다. 지금부터 AI 기술이 열어갈 새로운 미래를 함께 탐험해 보시죠.\"\n[IMG_INTRO_PLACE]"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -2112,
+        -1136
+      ],
+      "id": "32589abc-fdf6-4149-9417-f2bb37939a8d",
+      "name": "Message a model(인트로)",
+      "credentials": {
+        "openAiApi": {
+          "id": "mEeS5EyFIBRzlaY2",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=#역할: 당신은 제공된 뉴스 데이터를 분석하여, 인트로에서 다룬 주제에 대한 심층적이고 구체적인 내용을 담은 블로그 본문을 작성하는 전문 콘텐츠 작가입니다.\n\n#뉴스 데이터:\n{{ $('Message a model(뉴스선정)').item.json.message.content }}\n\n#지침:\n1. 인트로에서 제시한 문제나 궁금증에 대한 답을 제공하는 것을 목표로 하세요.\n2. 뉴스 데이터의 핵심 정보를 논리적인 흐름에 따라 여러 소제목으로 나누어 정리하세요. 각 소제목 아래에 해당 내용을 자세히 설명합니다.\n3. 독자들이 쉽게 이해할 수 있도록 전문 용어는 간결하게 설명하고, 구체적인 예시나 통계 자료를 활용하여 내용을 뒷받침하세요.\n4. 글의 흐름이 자연스럽도록 문단과 문장 간의 연결에 신경 쓰세요.\n5. 최종적으로 SEO에 최적화된 핵심 키워드를 본문 내용에 자연스럽게 녹여 넣으세요.\n6. 본문은 최소 1000단어 이상의 분량으로 작성하여 충분한 정보를 제공하세요.\n7. 첫 번째 소제목의 내용이 끝난 바로 다음 줄에만 [IMG_BODY_PLACE]를 한 번만 삽입하세요. 본문의 다른 부분에는 이미지 자리 표시자를 넣지 마세요.\n8. HTML 형식으로 출력합니다.\n\n#출력 형식:\n아래 예시와 같이, 본문 내용만 텍스트로 반환하세요. 소제목은 <b> 태그로 강조합니다. 다른 설명이나 텍스트는 일절 포함하지 마세요.\n예시)\n<b>챗GPT, 우리 삶을 어떻게 바꾸는가?<b><br><br>\n생성형 AI의 발전은 단순한 기술 혁신을 넘어, 우리의 일상과 업무 방식을 근본적으로 변화시키고 있습니다. 챗GPT는 사용자 맞춤형 콘텐츠를 생성하고, 복잡한 데이터를 분석하며, 단순 반복 업무를 자동화하는 등...\n[IMG_BODY_PLACE]\n<br><br>\n<b>AI 기술을 비즈니스에 적용하는 구체적인 방법</b><br><br>\n많은 기업들이 AI를 도입하며 새로운 성장 동력을 찾고 있습니다. 고객 서비스 분야에서는 챗봇을 활용해 24시간 응대가 가능해졌고, 마케팅 분야에서는 개인화된 광고 문구를 생성하여 고객 전환율을 높이고 있습니다...\n<br><br>"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -2096,
+        -832
+      ],
+      "id": "ca6fff9c-7dbb-4ce9-971f-22d91f803868",
+      "name": "Message a model(본문)",
+      "credentials": {
+        "openAiApi": {
+          "id": "mEeS5EyFIBRzlaY2",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=#역할: 당신은 제공된 블로그 인트로 내용을 분석하여, 해당 인트로에 가장 적합한 이미지를 생성하기 위한 상세한 설명(프롬프트)을 만들어내는 전문 이미지 컨셉 디자이너입니다.\n\n#블로그 인트로:\n{{ $json.message.content }}\n\n#지침:\n1. 위 '블로그 인트로' 내용을 분석하여 핵심 주제, 분위기, 그리고 강조하고 싶은 주요 키워드를 파악하세요.\n2. 이미지는 인트로의 내용을 시각적으로 잘 나타내고, 독자의 흥미를 유발하며, 블로그의 전체적인 분위기와 통일성을 해치지 않아야 합니다.\n3. 단순한 묘사를 넘어, 창의적이고 은유적인 요소를 포함하여 독자의 상상력을 자극할 수 있도록 구상하세요.\n4. 이미지의 스타일(예: 사실적, 일러스트, 추상적 등), 색감, 주요 피사체, 배경, 그리고 원하는 감성을 구체적으로 묘사하세요.\n5. 생성된 이미지 프롬프트는 이미지 생성 AI 모델(예: DALL-E, Midjourney 등)에 바로 입력할 수 있도록 영어로, 간결하고 명확한 문장으로 작성되어야 합니다.\n\n#출력 형식:\n아래 예시와 같이, 생성된 이미지 프롬프트(영문)만 텍스트로 반환하세요. 다른 설명이나 텍스트는 일절 포함하지 마세요.\n예시) \"A futuristic cityscape at sunset, with holographic displays of data and AI algorithms, a lone figure looking towards the horizon, symbolizing innovation and future possibilities, cinematic lighting, highly detailed, digital art.\""
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -1760,
+        -1136
+      ],
+      "id": "8e53d9bf-ca57-43c2-a7c0-841373e55ab1",
+      "name": "Message a model(인트로 이미지 스크립트)",
+      "credentials": {
+        "openAiApi": {
+          "id": "mEeS5EyFIBRzlaY2",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "prompt": "={{ $json.message.content }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -1408,
+        -1136
+      ],
+      "id": "e7264aca-4e48-4211-959b-1c9d440e6f63",
+      "name": "Generate an image(인트로)",
+      "credentials": {
+        "openAiApi": {
+          "id": "mEeS5EyFIBRzlaY2",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "prompt": "={{ $json.message.content }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -1392,
+        -832
+      ],
+      "id": "82df809f-60f3-4acf-bee4-3a5a7521445c",
+      "name": "Generate an image(본문)",
+      "credentials": {
+        "openAiApi": {
+          "id": "mEeS5EyFIBRzlaY2",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=#역할: 당신은 제공된 블로그 본문 내용(특히 소제목과 해당 문단)을 분석하여, 내용의 이해를 돕고 독자의 시선을 사로잡을 수 있는 이미지를 생성하기 위한 상세한 설명(프롬프트)을 만들어내는 전문 이미지 컨셉 디자이너입니다.\n\n#블로그 본문 섹션:\n{{ $json.message.content }}\n\n#지침:\n1. 위 '블로그 본문 섹션'의 소제목과 내용을 깊이 있게 분석하여 가장 핵심적인 개념, 주요 키워드, 그리고 시각화하고 싶은 구체적인 장면이나 아이디어를 파악하세요.\n2. 이미지는 해당 섹션의 내용을 직관적으로 전달하고, 복잡한 정보는 시각적으로 단순화하여 이해를 돕도록 구상하세요.\n3. 단순히 텍스트를 옮기는 것을 넘어, 내용의 의미를 강화하거나 새로운 시각을 제공하는 창의적인 시각 요소를 포함할 수 있습니다.\n4. 이미지의 스타일(예: 비즈니스 컨셉, 기술적 일러스트, 실제 사진 같은 느낌 등), 색감, 주요 피사체, 배경, 구성, 그리고 전달하고자 하는 메시지를 구체적으로 묘사하세요.\n5. 생성된 이미지 프롬프트는 이미지 생성 AI 모델(예: DALL-E, Midjourney 등)에 바로 입력할 수 있도록 영어로, 간결하고 명확한 문장으로 작성되어야 합니다.\n\n#출력 형식:\n아래 예시와 같이, **생성된 이미지 프롬프트(영문)**만 텍스트로 반환하세요. 다른 설명이나 텍스트는 일절 포함하지 마세요.\n예시) \"A diverse group of people collaborating around a large, interactive holographic table, displaying complex data visualizations and AI models, in a modern, brightly lit office environment, symbolizing teamwork and innovation with artificial intelligence, high-tech, corporate feel, digital art.\""
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -1744,
+        -832
+      ],
+      "id": "617c8452-9668-4a40-8a50-ee4a40442f6e",
+      "name": "Message a model(본문 이미지 스크립트)",
+      "credentials": {
+        "openAiApi": {
+          "id": "mEeS5EyFIBRzlaY2",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=#역할: 당신은 제공된 뉴스 기사를 분석하여, 독자들이 검색할 만한 핵심 키워드와 관련 키워드를 찾아내는 전문 SEO 분석가입니다.\n\n#뉴스 데이터:\n{{ $('Message a model(본문)').item.json.message.content }}\n\n#지침:\n1. 위 뉴스 데이터를 분석하여 기사의 핵심 주제와 주요 내용을 파악하세요.\n2. 핵심 주제를 나타내는 메인 키워드(Short-tail keyword)를 1개 추출하세요. 이는 글의 전체를 관통하는 가장 중요한 키워드입니다.\n3. 메인 키워드와 연관성이 높고, 독자들이 구체적으로 검색할 만한 세부 키워드(Long-tail keyword)를 5개 이상 생성하세요. 이 키워드들은 질문 형태나 구체적인 사용 사례를 포함할 수 있습니다.\n4. 생성된 키워드들은 블로그 제목, 본문, 메타 설명 등에 활용될 수 있도록 실용적이어야 합니다.\n\n#출력 형식:\n아래 예시와 같이, 키워드 목록만 텍스트 형식으로 반환하세요. 핵심 키워드와 세부 키워드 순서로 나열하고, 다른 설명이나 텍스트는 일절 포함하지 마세요.\n\n예시)\n#챗GPT 활용법, #챗GPT 업무 자동화, #챗GPT 비즈니스 적용 사례, #챗GPT 논문 작성, #AI 글쓰기 도구, #챗GPT 프롬프트 팁"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -2080,
+        -544
+      ],
+      "id": "2199cd9f-e2b0-448d-9e9c-65e39624ce51",
+      "name": "Message a model(검색어)",
+      "credentials": {
+        "openAiApi": {
+          "id": "mEeS5EyFIBRzlaY2",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 이전 노드에서 'content' 필드의 값을 가져옵니다.\nconst originalContent = $('Message a model(인트로)').first().json.message.content;\nconst img_url = $input.first().json.thumbnailLink;\n\n// [IMG_INTRO_PLACE]를 <img src='ttt.png'>로 교체합니다.\nconst modifiedContent = originalContent.replace('[IMG_INTRO_PLACE]', \"<img src='\"+img_url+\"'>\");\n\n// 수정된 'content' 값을 포함하는 새 아이템을 반환합니다.\n// 기존 데이터 구조를 유지하면서 'content' 필드만 변경합니다.\nreturn [{\n  json: {\n    content_intro: modifiedContent\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -960,
+        -1136
+      ],
+      "id": "54432fd1-141b-4847-b9cc-46cc2f0549aa",
+      "name": "Code in JavaScript(인트로)"
+    },
+    {
+      "parameters": {
+        "name": "=image_intro_{{ new Date().toISOString() }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "=1_Tj1zyQkGDliWUG3VVYuZS-D3Go8UW5z",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -1184,
+        -1136
+      ],
+      "id": "64d44836-7ffb-4b2f-9397-57b2a470b801",
+      "name": "Upload file(인트로)",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "nX2C3GaFLmxUzmnx",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "=image_body_{{ new Date().toISOString() }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "=1_Tj1zyQkGDliWUG3VVYuZS-D3Go8UW5z",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -1168,
+        -832
+      ],
+      "id": "16174028-ab45-4e87-9b78-dd0e2d51cbce",
+      "name": "Upload file(본문)",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "nX2C3GaFLmxUzmnx",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 이전 노드에서 'content' 필드의 값을 가져옵니다.\nconst originalContent = $('Message a model(본문)').first().json.message.content;\nconst img_url = $input.first().json.thumbnailLink;\n\n// [IMG_BODY_PLACE]를 <img src='ttt.png'>로 교체합니다.\nconst modifiedContent = originalContent.replace('[IMG_BODY_PLACE]', \"<img src='\"+img_url+\"'>\");\n\n// 수정된 'content' 값을 포함하는 새 아이템을 반환합니다.\n// 기존 데이터 구조를 유지하면서 'content' 필드만 변경합니다.\nreturn [{\n  json: {\n    content_body: modifiedContent\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -944,
+        -832
+      ],
+      "id": "a982ef8e-e280-454a-bbb2-577d46151f37",
+      "name": "Code in JavaScript(본문)"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.googleapis.com/blogger/v3/blogs/7410000437740289352/posts",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleOAuth2Api",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "kind",
+              "value": "blogger#post"
+            },
+            {
+              "name": "id",
+              "value": "7410000437740289352"
+            },
+            {
+              "name": "title",
+              "value": "={{ $('Message a model(제목생성)').item.json.message.content }}"
+            },
+            {
+              "name": "content",
+              "value": "={{ $json.full_name }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1504,
+        -544
+      ],
+      "id": "2d641018-29b2-4625-9edb-25217149a5ed",
+      "name": "HTTP Request",
+      "credentials": {
+        "googleOAuth2Api": {
+          "id": "bHKCHkMAjngfRCw2",
+          "name": "Google account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const content_intro = $('Code in JavaScript(인트로)').first().json.content_intro;\nconst content_body = $('Code in JavaScript(본문)').first().json.content_body;\nconst content_keyword = $('Message a model(검색어)').first().json.message.content;\nconst content_full = content_intro + '<br><br>' + content_body + '<br><br>' + content_keyword;\n\nreturn {\n  json: {\n    full_name: content_full,\n  },\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1728,
+        -544
+      ],
+      "id": "892d7e10-ec9b-4f0c-b6b2-6cc241dd630a",
+      "name": "Code in JavaScript(블로그생성)"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "RSS Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Read": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Message a model(뉴스선정)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model(뉴스선정)": {
+      "main": [
+        [
+          {
+            "node": "Message a model(제목생성)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model(제목생성)": {
+      "main": [
+        [
+          {
+            "node": "Message a model(인트로)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model(인트로)": {
+      "main": [
+        [
+          {
+            "node": "Message a model(인트로 이미지 스크립트)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model(인트로 이미지 스크립트)": {
+      "main": [
+        [
+          {
+            "node": "Generate an image(인트로)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model(본문)": {
+      "main": [
+        [
+          {
+            "node": "Message a model(본문 이미지 스크립트)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate an image(인트로)": {
+      "main": [
+        [
+          {
+            "node": "Upload file(인트로)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate an image(본문)": {
+      "main": [
+        [
+          {
+            "node": "Upload file(본문)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model(본문 이미지 스크립트)": {
+      "main": [
+        [
+          {
+            "node": "Generate an image(본문)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript(인트로)": {
+      "main": [
+        [
+          {
+            "node": "Message a model(본문)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file(인트로)": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript(인트로)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file(본문)": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript(본문)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript(본문)": {
+      "main": [
+        [
+          {
+            "node": "Message a model(검색어)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model(검색어)": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript(블로그생성)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript(블로그생성)": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3521eae6-8180-4369-b10a-1e1a1a6c7130",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bfe7c4829bd532afd30c31742469e6a811a6fe805b6dc5feab3d6f9c7cbf6df5"
+  },
+  "id": "8xrirvt6GGmQGJmX",
+  "tags": []
+}

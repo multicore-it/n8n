@@ -1,0 +1,319 @@
+{
+  "name": "ChatBot(Teams)",
+  "nodes": [
+    {
+      "parameters": {
+        "teamId": {
+          "__rl": true,
+          "value": "8597f20b-7be4-4967-b9f8-f8045d27efb0",
+          "mode": "list",
+          "cachedResultName": "베이직인터내셔널"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "19:fOFBKGezaT4FcbJXyb1J5gQaZDdAEpUut_gj5B_EAzw1@thread.tacv2",
+          "mode": "list",
+          "cachedResultName": "법률상담",
+          "cachedResultUrl": "https://teams.cloud.microsoft/l/channel/19%3AfOFBKGezaT4FcbJXyb1J5gQaZDdAEpUut_gj5B_EAzw1%40thread.tacv2/%EB%B2%95%EB%A5%A0%EC%83%81%EB%8B%B4?groupId=8597f20b-7be4-4967-b9f8-f8045d27efb0&tenantId=927f36e3-f254-4a32-b674-49d7fab6fb65&allowXTenantAccess=True&ngc=True"
+        }
+      },
+      "type": "n8n-nodes-base.microsoftTeamsTrigger",
+      "typeVersion": 1,
+      "position": [
+        -752,
+        -16
+      ],
+      "id": "c737ea8f-1bf3-48fe-a209-daa589b13d9a",
+      "name": "Microsoft Teams Trigger",
+      "webhookId": "2aaf6627-9fe6-43ce-b92b-e6421bdd2528",
+      "executeOnce": false,
+      "credentials": {
+        "microsoftTeamsOAuth2Api": {
+          "id": "MMGOhITjBsmEURmx",
+          "name": "Microsoft Teams account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=# 역할: 당신은 기업 법률 관련 전문가입니다.\n\n# 사용자 질문\n{{ $json.body.content }}\n\n# 도구:\n* legal_search_tool: 고용 관련 법률 및 규정을 검색하는 도구입니다.\n\n# 지침:\n1. '도구'에서 검색한 결과에서 불필요한 데이터를 버리고, 한글 데이터를 찾습니다.\n2. 한글 데이터를 잘 정리합니다.\n3. '사용자 질문'에 한글 데이터를 참조해서 답변을 작성합니다. \n4. 추측하거나 모호한 답변은 피하고, '도구'의 검색 결과를 바탕으로 답변을 구성하세요.\n5. 도구에서 답변을 찾지못하면 \"적절한 답변을 찾을 수 없습니다.\" 메시지 보여주세요.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -48,
+        -16
+      ],
+      "id": "aeeca1ce-d242-4c3f-8105-641b8d4c9bad",
+      "name": "AI Agent",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        208
+      ],
+      "id": "c7ca61f8-cb3c-4d3b-bb05-11ae4811ce2e",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "YLW01e6Yk2n8vuzl",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Microsoft Teams Trigger').item.json.id }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        32,
+        208
+      ],
+      "id": "602ab459-e63a-482f-add1-753de44392b4",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "resource": "channelMessage",
+        "operation": "getAll",
+        "teamId": {
+          "__rl": true,
+          "value": "8597f20b-7be4-4967-b9f8-f8045d27efb0",
+          "mode": "list",
+          "cachedResultName": "베이직인터내셔널"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "19:fOFBKGezaT4FcbJXyb1J5gQaZDdAEpUut_gj5B_EAzw1@thread.tacv2",
+          "mode": "list",
+          "cachedResultName": "법률상담",
+          "cachedResultUrl": "https://teams.cloud.microsoft/l/channel/19%3AfOFBKGezaT4FcbJXyb1J5gQaZDdAEpUut_gj5B_EAzw1%40thread.tacv2/%EB%B2%95%EB%A5%A0%EC%83%81%EB%8B%B4?groupId=8597f20b-7be4-4967-b9f8-f8045d27efb0&tenantId=927f36e3-f254-4a32-b674-49d7fab6fb65&allowXTenantAccess=True&ngc=True"
+        },
+        "limit": 1
+      },
+      "type": "n8n-nodes-base.microsoftTeams",
+      "typeVersion": 2,
+      "position": [
+        -528,
+        -16
+      ],
+      "id": "50243fb3-9ced-4f90-9b20-42f16986adb2",
+      "name": "Get many messages",
+      "webhookId": "753fc9e3-6e15-4b80-90c0-ca16bb1000c7",
+      "executeOnce": false,
+      "credentials": {
+        "microsoftTeamsOAuth2Api": {
+          "id": "MMGOhITjBsmEURmx",
+          "name": "Microsoft Teams account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "이 도구는 Dify API에 HTTP POST 요청을 보내어 챗봇 응답을 받습니다.",
+        "method": "POST",
+        "url": "https://api.dify.ai/v1/chat-messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {api_key}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"inputs\": {},\n  \"query\": \"{{ $('If').item.json.body.content }}\",\n  \"response_mode\": \"blocking\",\n  \"conversation_id\": \"\",\n  \"user\": \"abc-124\",\n  \"files\": [\n    {\n      \"type\": \"image\",\n      \"transfer_method\": \"remote_url\",\n      \"url\": \"https://cloud.dify.ai/logo/logo-site.png\"\n    }\n  ]\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        160,
+        208
+      ],
+      "id": "83f5cf04-3119-46cc-9c4c-4415a622aafd",
+      "name": "legal_search_tool",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "HCWFJDcL1zk90fCN",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "channelMessage",
+        "teamId": {
+          "__rl": true,
+          "value": "8597f20b-7be4-4967-b9f8-f8045d27efb0",
+          "mode": "list",
+          "cachedResultName": "베이직인터내셔널"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "19:fOFBKGezaT4FcbJXyb1J5gQaZDdAEpUut_gj5B_EAzw1@thread.tacv2",
+          "mode": "list",
+          "cachedResultName": "법률상담",
+          "cachedResultUrl": "https://teams.cloud.microsoft/l/channel/19%3AfOFBKGezaT4FcbJXyb1J5gQaZDdAEpUut_gj5B_EAzw1%40thread.tacv2/%EB%B2%95%EB%A5%A0%EC%83%81%EB%8B%B4?groupId=8597f20b-7be4-4967-b9f8-f8045d27efb0&tenantId=927f36e3-f254-4a32-b674-49d7fab6fb65&allowXTenantAccess=True&ngc=True"
+        },
+        "message": "={{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.microsoftTeams",
+      "typeVersion": 2,
+      "position": [
+        368,
+        -16
+      ],
+      "id": "c759c4bf-0e8f-47df-b097-3728e87f8e92",
+      "name": "Create message",
+      "webhookId": "70295ba7-b189-4ace-ba62-ffcef3a9956e",
+      "credentials": {
+        "microsoftTeamsOAuth2Api": {
+          "id": "MMGOhITjBsmEURmx",
+          "name": "Microsoft Teams account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "4af01f05-6a4f-49bf-ae86-8e6f538da38a",
+              "leftValue": "={{ $('Microsoft Teams Trigger').item.json.id }}",
+              "rightValue": "={{ $json.id }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -320,
+        -16
+      ],
+      "id": "7346198c-7e92-4696-b463-c7cc5a618ebd",
+      "name": "If"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Microsoft Teams Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get many messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many messages": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "legal_search_tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Create message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f552c76e-335b-4f3d-a1b6-18c71b288bf8",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ca42ea5b116f6cdfe7aabe94d727b028212d11d79f535ab133fecad1577187f8"
+  },
+  "id": "IDnLGkT450S6P2Cl",
+  "tags": []
+}

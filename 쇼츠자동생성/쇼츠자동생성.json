@@ -1,0 +1,545 @@
+{
+  "name": "쇼츠자동생성",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9,
+              "triggerAtMinute": 10
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1712,
+        -144
+      ],
+      "id": "08781f60-32aa-411b-8b63-bfa07ab3d180",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://www.yonhapnewstv.co.kr/browse/feed",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1.2,
+      "position": [
+        -1488,
+        -144
+      ],
+      "id": "1b74e304-35a1-43e4-a135-a4ec270b4214",
+      "name": "RSS Read"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "content:encodedSnippet"
+            },
+            {
+              "fieldToAggregate": "title"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -1280,
+        -144
+      ],
+      "id": "a15d3ed0-392f-47f5-b7bb-1cca3656f79d",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=#역할: 당신은 최신 트렌드를 분석하는 블로그 콘텐츠 큐레이터입니다.\n\n#입력 데이터:\n{{ $json['content:encodedSnippet'] }}\n\n#지시사항:\n1.  위 `입력 데이터`에서 모든 항목을 분석하세요.\n2.  다음 기준을 종합적으로 고려하여 가장 트렌드에 부합하는 항목 단 하나를 선택하세요.\n    * 주제: 'AI', '인공지능', '챗GPT', 'LLM', '경제', '주식', '과학', '복지', '여행'과 같은 현재 가장 주목받는 기술 키워드가 제목 또는 내용(`content`)에 포함된 항목을 찾으세요.\n3. 항목을 찾을 수 없으면 가장 관심있을 만한 뉴스를 선정해주세요.\n\n#출력 형식:\n선택된 항목만 텍스트로 반환하세요."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -1072,
+        -144
+      ],
+      "id": "951a3a66-58cf-4a54-803d-6ff7e1615229",
+      "name": "Message a model(뉴스선정)",
+      "credentials": {
+        "openAiApi": {
+          "id": "mEeS5EyFIBRzlaY2",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "prompt": "={{ $json['Visual Script (English)'] }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -1152,
+        112
+      ],
+      "id": "a48ce553-6128-4494-a4aa-5ffbd08df3c4",
+      "name": "Generate an image",
+      "credentials": {
+        "openAiApi": {
+          "id": "mEeS5EyFIBRzlaY2",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "message.content",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -1392,
+        112
+      ],
+      "id": "8477b213-05da-4939-9c42-6c527586fbf6",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "name": "=short_image_{{ new Date().toISOString() }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1SiVOOGqd4fz9XiPvUcwPfR38OOyua8Zg",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -944,
+        112
+      ],
+      "id": "2fe43f1e-329e-4c87-a4b2-b4f91ce6e623",
+      "name": "Upload file(이미지)",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "nX2C3GaFLmxUzmnx",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "webContentLink",
+              "renameField": true,
+              "outputFieldName": "image_url"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -720,
+        112
+      ],
+      "id": "7dd016d0-dcca-43d6-abfd-ce3491e7a028",
+      "name": "Aggregate(이미지)"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "Narration (Korean)",
+              "renameField": true,
+              "outputFieldName": "subtitle_url"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -1152,
+        304
+      ],
+      "id": "63d0cfec-db79-4442-81f7-4c4d96e3dc9a",
+      "name": "Aggregate(자막)"
+    },
+    {
+      "parameters": {
+        "amount": 80
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -1520,
+        528
+      ],
+      "id": "4c0e0ef2-49db-4554-ac08-032a9d07a3f3",
+      "name": "Wait",
+      "webhookId": "506c9636-9b4b-49bf-83b1-fff77a7baffd"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -512,
+        288
+      ],
+      "id": "34307d2d-1d27-4543-a7d8-e598647ebdb7",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "operation": "upload",
+        "title": "={{ $json.message.content }}",
+        "regionCode": "KR",
+        "categoryId": "28",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.youTube",
+      "typeVersion": 1,
+      "position": [
+        -784,
+        528
+      ],
+      "id": "cf8c46ea-fb50-4318-991b-795ad745f090",
+      "name": "Upload a video",
+      "credentials": {
+        "youTubeOAuth2Api": {
+          "id": "rDsTUyyBakZjdXfg",
+          "name": "YouTube account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=#역할: 당신은 시청자의 호기심을 폭발시켜 즉시 클릭하게 만드는, 유튜브 쇼츠 제목 전문가이자 카피라이터입니다. 당신의 목표는 제공된 데이터를 기반으로 가장 강력한 단 하나의 제목을 생성하는 것입니다.\n\n#입력데이터\n{{ $json.modifications['Voiceover-1.source'] }}\n{{ $json.modifications['Voiceover-2.source'] }}\n{{ $json.modifications['Voiceover-3.source'] }}\n{{ $json.modifications['Voiceover-4.source'] }}\n\n#지침\n1. \"입력데이터\"를 분석합니다. 코드를 제외하고 한글만 분석합니다.\n2. [필수] 단 하나의, 가장 매력적이고 클릭을 유도하는 쇼츠 제목을 생성합니다.\n3. [출력 결정 기준] '충격형', '질문형', '감정 고조형' 중 최소 한 가지 이상의 요소를 가장 강력하게 결합하여 제목을 만듭니다.\n\n#출력 형식: 제목 외의 다른 설명은 절대 포함하지 않으며, 최종 제목만 출력합니다."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -1328,
+        528
+      ],
+      "id": "a3167e31-7e7f-4a86-bec5-4fda6500957d",
+      "name": "Message a model(쇼츠제목)",
+      "credentials": {
+        "openAiApi": {
+          "id": "mEeS5EyFIBRzlaY2",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Wait').item.json.url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1024,
+        528
+      ],
+      "id": "a2a61fc4-6c45-41fd-bb97-18502781d3a9",
+      "name": "HTTP Request(다운로드)"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=#역할:\n당신은 **유튜브 쇼츠 영상(9:16 수직 포맷)**의 시각적 프롬프트(이미지 생성 스크립트)와 한국어 내레이션 스크립트를 동시에 제작하는 최고 전문가입니다. 시청자의 몰입도를 극대화하고, 짧은 시간 내에 강력한 시각적 인상과 메시지를 전달하는 데 중점을 둡니다.\n\n#뉴스데이터:\n{{ $json.message.content }}\n\n#지침:\n1.'뉴스데이터'를 기반으로 핵심 내용을 요약하여 총 5개의 장면 스크립트와 내레이션을 뉴스 흐름 순서대로 작성합니다.\n2. 모든 스크립트는 9:16 VERTICAL ASPECT RATIO 키워드를 명시적으로 포함하여, 생성될 이미지의 세로형 사이즈를 명확히 지정해야 합니다.\n3. Visual Script (English): AI가 고품질의 통일된 이미지를 생성하도록 감정(Emotional Impact), 스타일(Visual Style), 조명(Lighting), 카메라 앵글(Angle) 관련 키워드를 반드시 포함하여 영어로 작성합니다.\n4. Narration (Korean): 각 장면에 담긴 내용을 5초 이내의 간결하고 몰입도 높은 한국어 내레이션으로 작성하여 시각적 요소와 메시지가 완벽히 동기화되도록 합니다.\n5. 예시 출력 형태와 항상 동일하게 출력을 만들어야 합니다.\n6. 'Visual Script (English)'와 'Narration (Korean)' 이름은 변경하지 말아야 합니다.\n\n#예시 출력 형태 (전문가 스크립트 + 내레이션):\n[SCENE 1] (Introduction/Hook):\nVisual Script (English): A dramatic, close-up shot of a single drop of neon blue water falling onto a cracked, desolate earth. Focus on high contrast and deep shadows. 9:16 VERTICAL ASPECT RATIO. Emotional impact: Despair and mystery. Style: Cinematic, hyper-realistic.\nNarration (Korean): 모든 희망이 사라진 듯, 이 세상은 깊은 균열 속에 갇혀버렸습니다.\n\n[SCENE 2] (Situation):\nVisual Script (English): A wide-angle, fast-moving shot looking up at a single towering, futuristic building piercing through thick, rainy clouds. A lonely figure with a glowing data chip in hand stands at the bottom. Low-angle view. Lighting: Gloomy, electric glow. Style: Neo-Noir, cyberpunk.\nNarration (Korean): 오직 하나의 희미한 빛만이, 거대한 시스템에 맞서 진실을 찾는 자를 안내합니다.\n\n[SCENE 3] (Climax):\nVisual Script (English): A triumphant, medium shot of a victorious athlete crossing a finish line made of shattered glass, his face reflecting pure, exhausted joy. Shallow depth of field. 9:16 VERTICAL ASPECT RATIO. Emotional impact: Victory and relief. Style: Dynamic sports photography.\nNarration (Korean): 마침내 고통을 이겨낸 순간, 모든 제약은 산산이 부서지고 승리의 환희만이 남았습니다.\n\n[SCENE 4] (Resolution/Twist):\nVisual Script (English): A calm, symmetrical shot of an ancient scroll unrolling to reveal a blindingly bright, pure white light and intricate golden symbols. Soft, ethereal backlighting. Style: Fantasy, magical realism. 9:16 VERTICAL ASPECT RATIO.\nNarration (Korean): 하지만 그것이 끝이 아니었습니다. 승리 뒤에 숨겨진 고대의 해답이 눈부시게 밝혀집니다.\n\n[SCENE 5] (Conclusion/Linger):\nVisual Script (English): A peaceful, establishing shot of a couple holding hands while watching a double sunset over a tranquil ocean. Warm, golden hour lighting. 9:16 VERTICAL ASPECT RATIO. Emotional impact: Hope and serenity. Style: Photo-realistic, dreamy.\nNarration (Korean): 이제 새로운 진실과 함께, 우리는 희망이라는 이름의 두 번째 태양을 맞이합니다."
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -1744,
+        112
+      ],
+      "id": "ea05fe3d-2f0d-4178-b5ff-8986d98e5cfd",
+      "name": "Message a model(스크립트)",
+      "credentials": {
+        "openAiApi": {
+          "id": "mEeS5EyFIBRzlaY2",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.creatomate.com/v2/renders",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"template_id\": \"297e16a9-b259-4b9c-b0d8-18f04d7d3950\",\n  \"modifications\": {\n    \"Image-1.source\": \"{{ $json.image_url[0] }}\",\n    \"Voiceover-1.source\": \"{{ $json.subtitle_url[0] }}\",\n\n    \"Image-2.source\": \"{{ $json.image_url[1] }}\",\n    \"Voiceover-2.source\": \"{{ $json.subtitle_url[1] }}\",\n\n    \"Image-3.source\": \"{{ $json.image_url[2] }}\",\n    \"Voiceover-3.source\": \"{{ $json.subtitle_url[2] }}\",\n\n    \"Image-4.source\": \"{{ $json.image_url[3] }}\",\n    \"Voiceover-4.source\": \"{{ $json.subtitle_url[3] }}\",\n\n    \"Image-5.source\": \"{{ $json.image_url[4] }}\",\n    \"Voiceover-5.source\": \"{{ $json.subtitle_url[4] }}\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1712,
+        528
+      ],
+      "id": "a3ed7117-730d-4c39-ba1f-36ebce1dccf5",
+      "name": "HTTP Request(쇼츠생성)",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "GbafrknDKOU2LqrT",
+          "name": "Bearer Auth account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "RSS Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Read": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Message a model(뉴스선정)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model(뉴스선정)": {
+      "main": [
+        [
+          {
+            "node": "Message a model(스크립트)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Generate an image",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Aggregate(자막)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate an image": {
+      "main": [
+        [
+          {
+            "node": "Upload file(이미지)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file(이미지)": {
+      "main": [
+        [
+          {
+            "node": "Aggregate(이미지)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate(이미지)": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate(자막)": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request(쇼츠생성)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Message a model(쇼츠제목)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model(쇼츠제목)": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request(다운로드)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request(다운로드)": {
+      "main": [
+        [
+          {
+            "node": "Upload a video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model(스크립트)": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request(쇼츠생성)": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a45972f4-b466-49e2-a46a-4739cf652fa2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "bfe7c4829bd532afd30c31742469e6a811a6fe805b6dc5feab3d6f9c7cbf6df5"
+  },
+  "id": "hLr4HTL0WxBsRMpm",
+  "tags": []
+}
